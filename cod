@@ -1,0 +1,343 @@
+public class Laba {
+
+    // ==========================================
+    // ЗАДАНИЕ 1: Типы данных и методы
+    // ==========================================
+
+    // Задача 1: Букву в число
+    public static int charToNum(char x) {
+        if (x < '0' || x > '9') {
+            System.out.println("Ошибка: символ должен быть цифрой от 0 до 9");
+            return -1;
+        }
+        return x - '0';
+    }
+
+    // Задача 2: Есть ли позитив
+    public static boolean isPositive(int x) {
+        return x > 0;
+    }
+
+    // Задача 3: Большая буква
+    public static boolean isUpperCase(char x) {
+        return x >= 'A' && x <= 'Z';
+    }
+
+    // Задача 4: Делитель
+    public static boolean isDivisor(int a, int b) {
+        if (a == 0 || b == 0) {
+            System.out.println("Ошибка: деление на ноль невозможно");
+            return false;
+        }
+        return a % b == 0 || b % a == 0;
+    }
+
+    // Задача 5: Многократный вызов
+    public static int lastNumSum(int a, int b) {
+        return (a % 10) + (b % 10);
+    }
+
+    // ==========================================
+    // ЗАДАНИЕ 2: Условия (if, switch)
+    // ==========================================
+
+    // Задача 1: Модуль числа
+    public static int abs(int x) {
+        return x < 0 ? -x : x;
+    }
+
+    // Задача 2: Строка сравнения
+    public static String makeDecision(int x, int y) {
+        if (x > y) return x + " > " + y;
+        if (x < y) return x + " < " + y;
+        return x + " == " + y;
+    }
+
+    // Задача 3: Тройной максимум
+    public static int max3(int x, int y, int z) {
+        int max = x;
+        if (y > max) max = y;
+        if (z > max) max = z;
+        return max;
+    }
+
+    // Задача 4: Двойная сумма
+    public static int sum2(int x, int y) {
+        int sum = x + y;
+        return (sum >= 10 && sum <= 19) ? 20 : sum;
+    }
+
+    // Задача 5: День недели
+    public static String day(int x) {
+        switch (x) {
+            case 1: return "понедельник";
+            case 2: return "вторник";
+            case 3: return "среда";
+            case 4: return "четверг";
+            case 5: return "пятница";
+            case 6: return "суббота";
+            case 7: return "воскресенье";
+            default: return "это не день недели";
+        }
+    }
+
+    // ==========================================
+    // ЗАДАНИЕ 3: Циклы (for, while)
+    // ==========================================
+
+    // Задача 1: Числа наоборот
+    public static String reverseListNums(int x) {
+        String result = "";
+        for (int i = x; i >= 0; i--) {
+            result += i + (i > 0 ? " " : "");
+        }
+        return result;
+    }
+
+    // Задача 2: Четные числа
+    public static String chet(int x) {
+        String result = "";
+        for (int i = 0; i <= x; i += 2) {
+            result += i + (i + 2 <= x ? " " : "");
+        }
+        return result;
+    }
+
+    // Задача 3: Одинаковость
+    public static boolean equalNum(int x) {
+        if (x < 0) x = -x;
+        if (x < 10) return true;
+        int lastDigit = x % 10;
+        while (x > 0) {
+            if (x % 10 != lastDigit) return false;
+            x /= 10;
+        }
+        return true;
+    }
+
+    // Задача 4: Левый треугольник
+    public static void leftTriangle(int x) {
+        for (int i = 1; i <= x; i++) {
+            for (int j = 1; j <= i; j++) System.out.print("*");
+            System.out.println();
+        }
+    }
+
+    // Задача 5: Правый треугольник
+    public static void rightTriangle(int x) {
+        for (int i = 1; i <= x; i++) {
+            for (int j = 1; j <= x - i; j++) System.out.print(" ");
+            for (int j = 1; j <= i; j++) System.out.print("*");
+            System.out.println();
+        }
+    }
+
+    // ==========================================
+    // ЗАДАНИЕ 4: Массивы
+    // ==========================================
+
+    // Задача 1: Поиск первого значения
+    public static int findFirst(int[] arr, int x) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == x) return i;
+        }
+        return -1;
+    }
+
+    // Задача 2: Поиск последнего значения
+    public static int findLast(int[] arr, int x) {
+        for (int i = arr.length - 1; i >= 0; i--) {
+            if (arr[i] == x) return i;
+        }
+        return -1;
+    }
+
+    // Задача 3: Добавление в массив
+    public static int[] add(int[] arr, int x, int pos) {
+        if (pos < 0 || pos > arr.length) {
+            System.out.println("Ошибка: неверная позиция");
+            return arr;
+        }
+        int[] newArr = new int[arr.length + 1];
+        for (int i = 0; i < pos; i++) newArr[i] = arr[i];
+        newArr[pos] = x;
+        for (int i = pos; i < arr.length; i++) newArr[i + 1] = arr[i];
+        return newArr;
+    }
+
+    // Задача 4: Возвратный реверс
+    public static int[] reverseBack(int[] arr) {
+        int[] newArr = new int[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            newArr[i] = arr[arr.length - 1 - i];
+        }
+        return newArr;
+    }
+
+    // Задача 5: Удалить негатив
+    public static int[] deleteNegative(int[] arr) {
+        int count = 0;
+        for (int num : arr) {
+            if (num >= 0) count++;
+        }
+        int[] result = new int[count];
+        int index = 0;
+        for (int num : arr) {
+            if (num >= 0) result[index++] = num;
+        }
+        return result;
+    }
+
+    // ==========================================
+    // ВСПОМОГАТЕЛЬНЫЙ МЕТОД ДЛЯ ВЫВОДА МАССИВА
+    // ==========================================
+    public static void printArray(int[] arr) {
+        System.out.print("[");
+        for (int i = 0; i < arr.length; i++) {
+            System.out.print(arr[i]);
+            if (i < arr.length - 1) System.out.print(", ");
+        }
+        System.out.print("]");
+    }
+
+    // ==========================================
+    // ГЛАВНЫЙ МЕТОД
+    // ==========================================
+    public static void main(String[] args) {
+
+        System.out.println("=== ЛАБОРАТОРНАЯ РАБОТА №1 ===\n");
+
+        // ========== ЗАДАНИЕ 1 ==========
+        System.out.println("=== ЗАДАНИЕ 1: Типы данных ===\n");
+
+        System.out.println("--- 1. Букву в число ---");
+        System.out.println("charToNum('3') → " + charToNum('3'));
+        System.out.println("charToNum('9') → " + charToNum('9'));
+        System.out.println("charToNum('0') → " + charToNum('0') + "\n");
+
+        System.out.println("--- 2. Есть ли позитив ---");
+        System.out.println("isPositive(5)  → " + isPositive(5));
+        System.out.println("isPositive(-3) → " + isPositive(-3));
+        System.out.println("isPositive(0)  → " + isPositive(0) + "\n");
+
+        System.out.println("--- 3. Большая буква ---");
+        System.out.println("isUpperCase('D') → " + isUpperCase('D'));
+        System.out.println("isUpperCase('q') → " + isUpperCase('q'));
+        System.out.println("isUpperCase('Z') → " + isUpperCase('Z') + "\n");
+
+        System.out.println("--- 4. Делитель ---");
+        System.out.println("isDivisor(3, 6)  → " + isDivisor(3, 6));
+        System.out.println("isDivisor(2, 15) → " + isDivisor(2, 15));
+        System.out.println("isDivisor(10, 5) → " + isDivisor(10, 5) + "\n");
+
+        System.out.println("--- 5. Многократный вызов ---");
+        System.out.println("Числа: 5, 11, 123, 14, 1");
+        int res = 0;
+        for (int n : new int[]{5, 11, 123, 14, 1}) {
+            res = lastNumSum(res, n);
+        }
+        System.out.println("Итог: " + res + "\n");
+
+        // ========== ЗАДАНИЕ 2 ==========
+        System.out.println("=== ЗАДАНИЕ 2: Условия ===\n");
+
+        System.out.println("--- 1. Модуль числа ---");
+        System.out.println("abs(5)  → " + abs(5));
+        System.out.println("abs(-3) → " + abs(-3));
+        System.out.println("abs(0)  → " + abs(0) + "\n");
+
+        System.out.println("--- 2. Строка сравнения ---");
+        System.out.println("makeDecision(5, 7)  → " + makeDecision(5, 7));
+        System.out.println("makeDecision(8, -1) → " + makeDecision(8, -1));
+        System.out.println("makeDecision(4, 4)  → " + makeDecision(4, 4) + "\n");
+
+        System.out.println("--- 3. Тройной максимум ---");
+        System.out.println("max3(5, 7, 7)   → " + max3(5, 7, 7));
+        System.out.println("max3(8, -1, 4)  → " + max3(8, -1, 4));
+        System.out.println("max3(-5, -2, -8) → " + max3(-5, -2, -8) + "\n");
+
+        System.out.println("--- 4. Двойная сумма ---");
+        System.out.println("sum2(5, 7)  → " + sum2(5, 7));
+        System.out.println("sum2(8, -1) → " + sum2(8, -1));
+        System.out.println("sum2(10, 5) → " + sum2(10, 5) + "\n");
+
+        System.out.println("--- 5. День недели ---");
+        System.out.println("day(1)  → " + day(1));
+        System.out.println("day(5)  → " + day(5));
+        System.out.println("day(7)  → " + day(7));
+        System.out.println("day(10) → " + day(10) + "\n");
+
+        // ========== ЗАДАНИЕ 3 ==========
+        System.out.println("=== ЗАДАНИЕ 3: Циклы ===\n");
+
+        System.out.println("--- 1. Числа наоборот ---");
+        System.out.println("reverseListNums(5) → " + reverseListNums(5));
+        System.out.println("reverseListNums(3) → " + reverseListNums(3) + "\n");
+
+        System.out.println("--- 2. Четные числа ---");
+        System.out.println("chet(9) → " + chet(9));
+        System.out.println("chet(6) → " + chet(6) + "\n");
+
+        System.out.println("--- 3. Одинаковость ---");
+        System.out.println("equalNum(1111) → " + equalNum(1111));
+        System.out.println("equalNum(1211) → " + equalNum(1211));
+        System.out.println("equalNum(777)  → " + equalNum(777) + "\n");
+
+        System.out.println("--- 4. Левый треугольник ---");
+        System.out.println("leftTriangle(4):");
+        leftTriangle(4);
+        System.out.println();
+
+        System.out.println("--- 5. Правый треугольник ---");
+        System.out.println("rightTriangle(4):");
+        rightTriangle(4);
+        System.out.println();
+
+        // ========== ЗАДАНИЕ 4 ==========
+        System.out.println("=== ЗАДАНИЕ 4: Массивы ===\n");
+
+        int[] arr1 = {1, 2, 3, 4, 2, 2, 5};
+        int[] arr2 = {1, 2, 3, 4, 5};
+        int[] arr3 = {1, 2, -3, 4, -2, 2, -5};
+
+        System.out.println("--- 1. Поиск первого значения ---");
+        System.out.print("Массив: ");
+        printArray(arr1);
+        System.out.println();
+        System.out.println("findFirst(arr, 2) → " + findFirst(arr1, 2));
+        System.out.println("findFirst(arr, 7) → " + findFirst(arr1, 7) + "\n");
+
+        System.out.println("--- 2. Поиск последнего значения ---");
+        System.out.print("Массив: ");
+        printArray(arr1);
+        System.out.println();
+        System.out.println("findLast(arr, 2) → " + findLast(arr1, 2));
+        System.out.println("findLast(arr, 5) → " + findLast(arr1, 5) + "\n");
+
+        System.out.println("--- 3. Добавление в массив ---");
+        System.out.print("Исходный массив: ");
+        printArray(arr2);
+        System.out.println();
+        System.out.print("add(arr, 9, 3) → ");
+        printArray(add(arr2, 9, 3));
+        System.out.println("\n");
+
+        System.out.println("--- 4. Возвратный реверс ---");
+        System.out.print("Исходный массив: ");
+        printArray(arr2);
+        System.out.println();
+        System.out.print("reverseBack(arr) → ");
+        printArray(reverseBack(arr2));
+        System.out.println("\n");
+
+        System.out.println("--- 5. Удалить негатив ---");
+        System.out.print("Исходный массив: ");
+        printArray(arr3);
+        System.out.println();
+        System.out.print("deleteNegative(arr) → ");
+        printArray(deleteNegative(arr3));
+        System.out.println("\n");
+
+        System.out.println("=== КОНЕЦ РАБОТЫ ===");
+    }
+}
