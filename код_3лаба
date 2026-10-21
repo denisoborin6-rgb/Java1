@@ -1,0 +1,666 @@
+Пакет ru.surname.geometry
+1. Точка.java
+
+java
+package ru.surname.geometry;
+
+import java.util.Objects;
+
+public class Точка implements Cloneable { // Реализуем клонирование для 8.4
+    private int x; // Координата X
+    private int y; // Координата Y
+
+    public Точка(int x, int y) { // Конструктор точки
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getX() { return x; } // Геттер X
+    public int getY() { return y; } // Геттер Y
+    public void setX(int x) { this.x = x; } // Сеттер X (для сдвига)
+    public void setY(int y) { this.y = y; } // Сеттер Y (для сдвига)
+
+    @Override
+    public Точка clone() { // Задание 8.4: клонируем объект
+        try {
+            return (Точка) super.clone(); // Создаем точную копию
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Клонирование не поддерживается", e);
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) { // Задание 6.4: сравнение по координатам
+        if (this == obj) return true; // Если это тот же объект
+        if (obj == null || getClass() != obj.getClass()) return false; // Проверка типа
+        Точка other = (Точка) obj; // Приводим тип
+        return this.x == other.x && this.y == other.y; // Сравниваем X и Y
+    }
+
+    @Override
+    public int hashCode() { // Хэш-код для коллекций
+        return Objects.hash(x, y); // Генерируем хэш по координатам
+    }
+
+    @Override
+    public String toString() { // Вывод в формате "{x;y}"
+        return "{" + x + ";" + y + "}";
+    }
+}
+2. Измеримый.java
+
+java
+package ru.surname.geometry;
+
+public interface Измеримый { // Задание 5.5: интерфейс для объектов с длиной
+    double длина(); // Метод для получения длины
+}
+3. PolygonalChainProvider.java
+
+java
+package ru.surname.geometry;
+
+public interface PolygonalChainProvider { // Задание 5.7: интерфейс для получения ломаной
+    Ломаная getPolygonalChain(); // Метод, возвращающий ломаную
+}
+4. Ломаная.java
+
+java
+package ru.surname.geometry;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Ломаная implements Измеримый, PolygonalChainProvider { // Реализует интерфейсы для 5.5 и 5.7
+    protected final List<Точка> точки; // Список точек
+
+    public Ломаная(Точка... точки) { // Конструктор (принимает любое кол-во точек)
+        if (точки == null || точки.length < 2) { // Проверка на минимум 2 точки
+            throw new IllegalArgumentException("Ломаная должна содержать минимум 2 точки");
+        }
+        this.точки = new ArrayList<>(); // Инициализация списка
+        for (Точка т : точки) { // Перебор переданных точек
+            if (т == null) throw new IllegalArgumentException("Точка не может быть null");
+            this.точки.add(т); // Добавление в список
+        }
+    }
+
+    public int размер() { return точки.size(); } // Количество точек
+
+    public Точка getТочка(int индекс) { // Получение точки по индексу
+        if (индекс < 0 || индекс >= точки.size()) { // Проверка границ
+            throw new IndexOutOfBoundsException("Некорректный индекс: " + индекс);
+        }
+        return точки.get(индекс); // Возврат точки
+    }
+
+    @Override
+    public double длина() { // Задание 5.5: расчет длины
+        double сумма = 0; // Сумма длин сегментов
+        for (int i = 0; i < точки.size() - 1; i++) { // Проход по парам точек
+            сумма += расстояние(точки.get(i), точки.get(i + 1)); // Суммируем расстояние
+        }
+        return сумма; // Возврат итоговой длины
+    }
+
+    protected static double расстояние(Точка a, Точка b) { // Вспомогательный метод (дистанция)
+        int dx = a.getX() - b.getX(); // Разность по X
+        int dy = a.getY() - b.getY(); // Разность по Y
+        return Math.sqrt(dx * dx + dy * dy); // Формула расстояния
+    }
+
+    @Override
+    public Ломаная getPolygonalChain() { // Задание 5.7: ломаная возвращает саму себя
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) { // Задание 6.4: сравнение ломаных
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Ломаная other = (Ломаная) obj;
+        return this.точки.equals(other.точки); // Сравниваем списки точек (вызовет equals у Точки)
+    }
+
+    @Override
+    public int hashCode() {
+        return точки.hashCode(); // Хэш по списку точек
+    }
+
+    @Override
+    public String toString() {
+        return "Ломаная " + точки; // Вывод в строку
+    }
+}
+5. ЗамкнутаяЛоманая.java
+
+java
+package ru.surname.geometry;
+
+public class ЗамкнутаяЛоманая extends Ломаная { // Задание 3.2: наследуемся от Ломаной
+    public ЗамкнутаяЛоманая(Точка... точки) {
+        super(точки); // Вызов конструктора родителя
+        if (!getТочка(0).equals(getТочка(размер() - 1))) { // Проверка: первая и последняя точки должны совпадать
+            throw new IllegalArgumentException("Замкнутая ломаная должна начинаться и заканчиваться одной точкой");
+        }
+    }
+
+    @Override
+    public double длина() { // Переопределяем длину для замкнутой линии
+        double общая = super.длина(); // Берем длину обычной ломаной
+        общая += расстояние(getТочка(0), getТочка(размер() - 1)); // Добавляем замыкающий отрезок
+        return общая; // Возвращаем итог
+    }
+
+    @Override
+    public String toString() {
+        return "Замкнутая " + super.toString(); // Добавляем приставку
+    }
+}
+6. Линия.java
+
+java
+package ru.surname.geometry;
+
+public class Линия implements Измеримый, PolygonalChainProvider { // Задания 5.5 и 5.7
+    private Точка начало;
+    private Точка конец;
+
+    public Линия(Точка начало, Точка конец) {
+        if (начало == null || конец == null) throw new IllegalArgumentException("Точки линии не могут быть null");
+        this.начало = начало;
+        this.конец = конец;
+    }
+
+    public Точка getНачало() { return начало; } // Геттер начала
+    public Точка getКонец()  { return конец; }  // Геттер конца
+    public void setНачало(Точка начало) { this.начало = начало; } // Сеттер начала
+    public void setКонец(Точка конец) { this.конец = конец; } // Сеттер конца
+
+    @Override
+    public double длина() { // Задание 5.5: длина линии
+        return Ломаная.расстояние(начало, конец); // Вызываем статический метод из Ломаной
+    }
+
+    @Override
+    public Ломаная getPolygonalChain() { // Задание 5.7: линия как ломаная из 2 точек
+        return new Ломаная(начало, конец);
+    }
+
+    @Override
+    public boolean equals(Object obj) { // Сравнение линий
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Линия other = (Линия) obj;
+        return this.начало.equals(other.начало) && this.конец.equals(other.конец);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * начало.hashCode() + конец.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Линия от " + начало + " до " + конец; // Вывод
+    }
+}
+7. Фигура.java
+
+java
+package ru.surname.geometry;
+
+public abstract class Фигура { // Задание 4.4: базовый класс для всех фигур
+    public abstract double площадь(); // Абстрактный метод (каждая фигура считает по-своему)
+    @Override
+    public abstract String toString(); // Абстрактный toString
+}
+8. Круг.java
+
+java
+package ru.surname.geometry;
+
+public class Круг extends Фигура { // Задание 4.4: Круг
+    private final Точка центр; // Центр круга
+    private final double радиус; // Радиус
+
+    public Круг(Точка центр, double радиус) {
+        if (центр == null) throw new IllegalArgumentException("Центр не может быть null");
+        if (радиус <= 0) throw new IllegalArgumentException("Радиус должен быть > 0");
+        this.центр = центр;
+        this.радиус = радиус;
+    }
+
+    @Override
+    public double площадь() { // Площадь круга
+        return Math.PI * радиус * радиус; // Пи * R^2
+    }
+
+    @Override
+    public String toString() {
+        return "Круг в точке " + центр + " радиусом " + радиус;
+    }
+}
+9. Квадрат.java
+
+java
+package ru.surname.geometry;
+
+public class Квадрат extends Фигура implements PolygonalChainProvider { // Задания 1.3, 4.4, 5.7
+    private Точка угол; // Левый верхний угол
+    private int сторона; // Длина стороны
+
+    public Квадрат(Точка угол, int сторона) {
+        if (угол == null) throw new IllegalArgumentException("Угол не может быть null");
+        this.угол = угол;
+        setСторона(сторона); // Вызов сеттера для валидации
+    }
+
+    public Квадрат(int x, int y, int сторона) { // Альтернативный конструктор
+        this(new Точка(x, y), сторона);
+    }
+
+    public void setСторона(int сторона) { // Задание 1.3: проверка стороны
+        if (сторона <= 0) { // Если сторона <= 0
+            throw new IllegalArgumentException("Сторона квадрата должна быть положительной, получено: " + сторона);
+        }
+        this.сторона = сторона; // Сохраняем
+    }
+
+    public int getСторона() { return сторона; } // Геттер стороны
+    public Точка getУгол() { return угол; } // Геттер угла
+
+    @Override
+    public double площадь() { // Площадь квадрата
+        return (double) сторона * сторона; // a^2
+    }
+
+    @Override
+    public Ломаная getPolygonalChain() { // Задание 5.7: возвращаем контур квадрата
+        Точка a = угол; // Левый верх
+        Точка b = new Точка(угол.getX() + сторона, угол.getY()); // Правый верх
+        Точка c = new Точка(угол.getX() + сторона, угол.getY() + сторона); // Правый низ
+        Точка d = new Точка(угол.getX(), угол.getY() + сторона); // Левый низ
+        return new Ломаная(a, b, c, d); // Создаем ломаную из 4 углов
+    }
+
+    @Override
+    public String toString() {
+        return "Квадрат в точке " + угол + " со стороной " + сторона;
+    }
+}
+10. Прямоугольник.java
+
+java
+package ru.surname.geometry;
+
+public class Прямоугольник extends Фигура { // Задание 4.4
+    private final Точка угол;
+    private final double сторонаA;
+    private final double сторонаB;
+
+    public Прямоугольник(Точка угол, double сторонаA, double сторонаB) {
+        if (угол == null) throw new IllegalArgumentException("Угол не может быть null");
+        if (сторонаA <= 0 || сторонаB <= 0) throw new IllegalArgumentException("Стороны должны быть > 0");
+        this.угол = угол;
+        this.сторонаA = сторонаA;
+        this.сторонаB = сторонаB;
+    }
+
+    @Override
+    public double площадь() { // Площадь прямоугольника
+        return сторонаA * сторонаB; // a * b
+    }
+
+    @Override
+    public String toString() {
+        return "Прямоугольник в точке " + угол + " со сторонами " + сторонаA + "x" + сторонаB;
+    }
+}
+11. Треугольник.java
+
+java
+package ru.surname.geometry;
+
+public class Треугольник extends Фигура implements PolygonalChainProvider { // Задания 4.4 и 5.7
+    private final Точка a, b, c; // Три вершины
+
+    public Треугольник(Точка a, Точка b, Точка c) {
+        if (a == null || b == null || c == null) throw new IllegalArgumentException("Точки не могут быть null");
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+
+    @Override
+    public double площадь() { // Площадь по формуле Герона
+        double ab = Ломаная.расстояние(a, b); // Сторона AB
+        double bc = Ломаная.расстояние(b, c); // Сторона BC
+        double ca = Ломаная.расстояние(c, a); // Сторона CA
+        double p = (ab + bc + ca) / 2; // Полупериметр
+        return Math.sqrt(p * (p - ab) * (p - bc) * (p - ca)); // Формула
+    }
+
+    @Override
+    public Ломаная getPolygonalChain() { // Задание 5.7: контур треугольника
+        return new Ломаная(a, b, c, a); // 4 точки, последняя замыкает
+    }
+
+    @Override
+    public String toString() {
+        return "Треугольник " + a + " " + b + " " + c;
+    }
+}
+Пакет ru.surname.tree
+12. Узел.java
+
+java
+package ru.surname.tree;
+
+public class Узел { // Задание 2.4: Узел дерева
+    private Integer значение; // Само число (null, если пусто)
+    private Узел родитель; // Ссылка на родителя
+    private Узел левыйПотомок; // Левый ребенок
+    private Узел правыйПотомок; // Правый ребенок
+
+    public Узел() {} // Пустой конструктор
+
+    public void добавить(int новое) { // Добавление значения
+        if (значение == null) { // Если узел пустой
+            значение = новое; // Записываем сюда
+            return;
+        }
+        if (новое > значение) { // Если новое больше текущего
+            if (правыйПотомок == null) { // И правого нет
+                правыйПотомок = new Узел(); // Создаем
+                правыйПотомок.родитель = this; // Ссылаемся на родителя
+            }
+            правыйПотомок.добавить(новое); // Рекурсивно идем вправо
+        } else { // Иначе (меньше или равно)
+            if (левыйПотомок == null) {
+                левыйПотомок = new Узел();
+                левыйПотомок.родитель = this;
+            }
+            левыйПотомок.добавить(новое); // Рекурсивно идем влево
+        }
+    }
+
+    public boolean содержит(int искомое) { // Поиск значения
+        if (значение == null) return false; // Пусто - нет
+        if (значение == искомое) return true; // Нашли
+        if (искомое > значение) { // Если больше - ищем справа
+            return правыйПотомок != null && правыйПотомок.содержит(искомое);
+        } else { // Иначе - слева
+            return левыйПотомок != null && левыйПотомок.содержит(искомое);
+        }
+    }
+
+    public void удалить(int искомое) { // Удаление узла
+        if (значение == null) return; // Пусто
+        if (значение == искомое) { // Нашли
+            удалитьТекущий(); // Вызываем логику удаления
+            return;
+        }
+        if (искомое > значение && правыйПотомок != null) { // Ищем справа
+            правыйПотомок.удалить(искомое);
+        } else if (искомое < значение && левыйПотомок != null) { // Ищем слева
+            левыйПотомок.удалить(искомое);
+        }
+    }
+
+    private void удалитьТекущий() { // Сложная логика удаления (сохранение потомков)
+        if (левыйПотомок == null && правыйПотомок == null) { // Случай 1: лист
+            значение = null; // Обнуляем
+            отцепитьОтРодителя(); // Убираем ссылку у родителя
+            return;
+        }
+        if (левыйПотомок == null) { // Случай 2: только правый
+            значение = правыйПотомок.значение; // Копируем значение
+            левыйПотомок = правыйПотомок.левыйПотомок; // Переносим левый
+            правыйПотомок = правыйПотомок.правыйПотомок; // Переносим правый
+            if (левыйПотомок != null) левыйПотомок.родитель = this;
+            if (правыйПотомок != null) правыйПотомок.родитель = this;
+            return;
+        }
+        if (правыйПотомок == null) { // Случай 3: только левый
+            значение = левыйПотомок.значение; // Копируем значение
+            правыйПотомок = левыйПотомок.правыйПотомок; // Переносим
+            левыйПотомок = левыйПотомок.левыйПотомок;
+            if (левыйПотомок != null) левыйПотомок.родитель = this;
+            if (правыйПотомок != null) правыйПотомок.родитель = this;
+            return;
+        }
+        Узел мин = правыйПотомок.минимум(); // Случай 4: оба ребенка
+        значение = мин.значение; // Берем минимум из правого поддерева
+        мин.удалитьТекущий(); // Удаляем этот минимум
+    }
+
+    private void отцепитьОтРодителя() { // Удаление ссылки на себя
+        if (родитель == null) return;
+        if (родитель.левыйПотомок == this) родитель.левыйПотомок = null;
+        else if (родитель.правыйПотомок == this) родитель.правыйПотомок = null;
+    }
+
+    private Узел минимум() { // Поиск минимального элемента
+        Узел тек = this;
+        while (тек.левыйПотомок != null) тек = тек.левыйПотомок; // Идем влево до конца
+        return тек;
+    }
+
+    @Override
+    public String toString() { // Вывод дерева
+        StringBuilder sb = new StringBuilder();
+        обход(sb); // Запускаем обход
+        return sb.toString().trim(); // Возвращаем строку
+    }
+
+    private void обход(StringBuilder sb) { // Pre-order (Корень-Левый-Правый)
+        if (значение != null) sb.append(значение).append(" "); // Сначала корень
+        if (левыйПотомок != null) левыйПотомок.обход(sb); // Потом левое
+        if (правыйПотомок != null) правыйПотомок.обход(sb); // Потом правое
+    }
+}
+Пакет ru.surname.main
+13. Main.java
+
+java
+package ru.surname.main;
+
+import ru.surname.geometry.*;
+import ru.surname.tree.Узел;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import static java.lang.Integer.parseInt;
+import static java.lang.Math.pow;
+
+public class Main { // Главный класс программы
+
+    private static final Scanner SC = new Scanner(System.in); // Сканер для меню
+
+    public static void main(String[] args) {
+        if (args.length >= 2) { // Задание 7.3: проверяем аргументы
+            System.out.println("Степень из аргументов: " + степень(args[0], args[1]));
+        }
+
+        while (true) { // Бесконечный цикл меню
+            печатьМеню(); // Показываем меню
+            int пункт = вДиапазоне("Выберите пункт: ", 0, 8); // Ждем ввода
+            System.out.println();
+
+            switch (пункт) { // Обработка выбора
+                case 1: Задача1_Квадрат.выполнить(); break;
+                case 2: Задача2_Дерево.выполнить(); break;
+                case 3: Задача3_ЗамкнутаяЛоманая.выполнить(); break;
+                case 4: Задача4_Фигуры.выполнить(); break;
+                case 5: Задача5_Полиморфизм.выполнить(); break;
+                case 6: Задача6_СравнениеЛоманых.выполнить(); break;
+                case 7: Задача7_Степень.выполнить(); break;
+                case 8: Задача8_Клонирование.выполнить(); break;
+                case 0: System.out.println("До свидания!"); return; // Выход
+            }
+            System.out.println("----------------------------");
+        }
+    }
+
+    private static void печатьМеню() { // Вывод красивого меню
+        System.out.println("\n===============================================");
+        System.out.println("  ЛАБОРАТОРНАЯ РАБОТА №3");
+        System.out.println("===============================================");
+        System.out.println("1 — Задание 1.3: Квадрат");
+        System.out.println("2 — Задание 2.4: Бинарное дерево");
+        System.out.println("3 — Задание 3.2: Замкнутая ломаная");
+        System.out.println("4 — Задание 4.4: Фигуры");
+        System.out.println("5 — Задание 5.5 + 5.7: Полиморфизм");
+        System.out.println("6 — Задание 6.4: Сравнение ломаных");
+        System.out.println("7 — Задание 7.3: Возведение в степень");
+        System.out.println("8 — Задание 8.4: Клонирование точки");
+        System.out.println("0 — Выход");
+        System.out.println("===============================================");
+    }
+
+    public static double суммарнаяДлина(Измеримый[] объекты) { // Задание 5.5
+        double сумма = 0;
+        for (Измеримый о : объекты) сумма += о.длина(); // Суммируем длины
+        return сумма;
+    }
+
+    public static Ломаная объединить(PolygonalChainProvider[] источники) { // Задание 5.7
+        List<Точка> всеТочки = new ArrayList<>(); // Собираем все точки
+        for (PolygonalChainProvider источник : источники) {
+            if (источник != null) {
+                Ломаная л = источник.getPolygonalChain(); // Получаем ломаную
+                for (int i = 0; i < л.размер(); i++) всеТочки.add(л.getТочка(i)); // Копируем точки
+            }
+        }
+        return new Ломаная(всеТочки.toArray(new Точка[0])); // Создаем новую
+    }
+
+    public static double степень(String x, String y) { // Задание 7.3
+        return pow(parseInt(x), parseInt(y)); // Используем короткие имена
+    }
+
+    private static int вДиапазоне(String приглашение, int min, int max) { // Проверка ввода для меню
+        while (true) {
+            System.out.print(приглашение);
+            String стр = SC.nextLine().trim();
+            try {
+                int значение = parseInt(стр);
+                if (значение >= min && значение <= max) return значение; // Если в диапазоне
+            } catch (NumberFormatException ignored) {}
+            System.out.println("Ошибка: введите число от " + min + " до " + max + ".");
+        }
+    }
+
+    // --- Вложенные классы для демонстрации задач ---
+
+    static class Задача1_Квадрат {
+        public static void выполнить() {
+            Квадрат кв = new Квадрат(5, 3, 23); // Создаем по условию
+            System.out.println("1. Создан: " + кв);
+            Ломаная лом = кв.getPolygonalChain(); // Получаем контур
+            System.out.println("2. Длина: " + лом.длина());
+            лом.getТочка(лом.размер() - 1).setX(15); // Сдвигаем последнюю точку
+            лом.getТочка(лом.размер() - 1).setY(25);
+            System.out.println("3. После сдвига: " + лом.длина());
+            try {
+                кв.setСторона(-5); // Проверяем инкапсуляцию
+                System.out.println("Ошибка не сработала!");
+            } catch (IllegalArgumentException e) {
+                System.out.println("4. Ошибка: " + e.getMessage());
+            }
+        }
+    }
+
+    static class Задача2_Дерево {
+        public static void выполнить() {
+            Узел дерево = new Узел();
+            int[] числа = {3, 5, 4, 7, 1, 2}; // Числа из условия
+            for (int ч : числа) дерево.добавить(ч); // Добавляем
+            System.out.println("1. Дерево: " + дерево);
+            System.out.println("2. Содержит 4: " + дерево.содержит(4));
+            System.out.println("3. Содержит 9: " + дерево.содержит(9));
+            дерево.удалить(5); // Удаляем 5
+            System.out.println("4. После удаления 5: " + дерево);
+        }
+    }
+
+    static class Задача3_ЗамкнутаяЛоманая {
+        public static void выполнить() {
+            ЗамкнутаяЛоманая зл = new ЗамкнутаяЛоманая(
+                new Точка(0, 0), new Точка(3, 0), new Точка(3, 4), new Точка(0, 0) // Начало = конец
+            );
+            System.out.println("1. Ломаная: " + зл);
+            System.out.println("2. Длина: " + зл.длина());
+        }
+    }
+
+    static class Задача4_Фигуры {
+        public static void выполнить() {
+            Фигура[] фигуры = {
+                new Круг(new Точка(0, 0), 5),
+                new Квадрат(0, 0, 4),
+                new Прямоугольник(new Точка(0, 0), 3, 5),
+                new Треугольник(new Точка(0, 0), new Точка(4, 0), new Точка(0, 3))
+            };
+            for (Фигура ф : фигуры) {
+                System.out.println(" * " + ф + " → площадь = " + ф.площадь()); // Полиморфный вызов
+            }
+        }
+    }
+
+    static class Задача5_Полиморфизм {
+        public static void выполнить() {
+            System.out.println("--- 5.5: Измерение длины ---");
+            Измеримый[] измеримые = {
+                new Линия(new Точка(0, 0), new Точка(3, 4)),
+                new Ломаная(new Точка(0, 0), new Точка(6, 8))
+            };
+            System.out.println("Суммарная длина: " + суммарнаяДлина(измеримые));
+
+            System.out.println("\n--- 5.7: Объединение ---");
+            PolygonalChainProvider[] источники = {
+                new Квадрат(0, 0, 2),
+                new Треугольник(new Точка(10, 0), new Точка(12, 0), new Точка(11, 3)),
+                new Линия(new Точка(20, 0), new Точка(25, 0))
+            };
+            System.out.println("Объединённая ломаная: " + объединить(источники));
+        }
+    }
+
+    static class Задача6_СравнениеЛоманых {
+        public static void выполнить() {
+            Ломаная л1 = new Ломаная(new Точка(0, 0), new Точка(1, 1), new Точка(2, 0));
+            Ломаная л2 = new Ломаная(new Точка(0, 0), new Точка(1, 1), new Точка(2, 0));
+            Ломаная л3 = new Ломаная(new Точка(0, 0), new Точка(1, 1));
+            System.out.println("1. л1: " + л1);
+            System.out.println("2. л2: " + л2);
+            System.out.println("3. л3: " + л3);
+            System.out.println("4. л1.equals(л2): " + л1.equals(л2)); // Должно быть true
+            System.out.println("5. л1.equals(л3): " + л1.equals(л3)); // Должно быть false
+        }
+    }
+
+    static class Задача7_Степень {
+        public static void выполнить() {
+            System.out.println("Возведение 2 в степень 5: " + степень("2", "5"));
+        }
+    }
+
+    static class Задача8_Клонирование {
+        public static void выполнить() {
+            Точка оригинал = new Точка(5, 3);
+            Точка копия = оригинал.clone(); // Создаем копию
+            System.out.println("1. Оригинал: " + оригинал);
+            System.out.println("2. Копия:    " + копия);
+            System.out.println("3. Это один объект? " + (оригинал == копия)); // false
+            System.out.println("4. Равны по equals? " + оригинал.equals(копия)); // true
+            копия.setX(999); // Меняем копию
+            System.out.println("5. После изменения копии:");
+            System.out.println("   Оригинал: " + оригинал); // Не изменился
+            System.out.println("   Копия:    " + копия); // Изменился
+        }
+    }
+}
