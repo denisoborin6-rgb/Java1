@@ -1,0 +1,551 @@
+// 1.1 Обобщённая коробка: хранит один объект типа T
+public class Box<T> {
+    private T value;                     // хранимое значение (null = пусто)
+
+    // Проверка: пуста ли коробка
+    public boolean isEmpty() {
+        return value == null;            // пусто, если значение null
+    }
+
+    // Положить объект в коробку
+    public void put(T value) {
+        if (!isEmpty()) {                // если уже занята
+            throw new IllegalStateException("Коробка не пуста"); // ошибка
+        }
+        this.value = value;              // сохраняем значение
+    }
+
+    // Извлечь объект и обнулить ссылку
+    public T get() {
+        T tmp = value;                   // запоминаем текущее
+        value = null;                    // обнуляем
+        return tmp;                      // возвращаем извлечённое
+    }
+
+    // Прочитать без обнуления (нужно для 2.2)
+    public T peek() {
+        return value;                    // просто возвращаем значение
+    }
+
+    // Строковое представление
+    @Override
+    public String toString() {
+        return "Box{value=" + value + "}"; // печатаем содержимое
+    }
+}
+
+
+
+
+
+// 1.2 Без null: неизменяемое хранилище с альтернативой вместо null
+public class NoNullStorage<T> {
+    private final T value;               // хранимое значение (может быть null)
+    private final T alternative;         // что вернуть, если value == null
+
+    // Конструктор: значение и альтернатива задаются один раз
+    public NoNullStorage(T value, T alternative) {
+        this.value = value;              // сохраняем значение
+        this.alternative = alternative;  // сохраняем альтернативу
+    }
+
+    // Получить значение или альтернативу
+    public T get() {
+        return value != null ? value : alternative; // null → альтернатива
+    }
+
+    // Строковое представление
+    @Override
+    public String toString() {
+        return "Storage{value=" + value + ", alternative=" + alternative + "}"; // печать полей
+    }
+}
+
+
+
+
+
+
+import java.util.List;                   // нужен List
+
+// 2.2 Поиск максимума среди коробок с числами
+public class MaxBoxFinder {
+
+    // Принимает список коробок с любыми числовыми типами, возвращает double
+    public static double findMax(List<? extends Box<? extends Number>> boxes) {
+        double max = Double.NEGATIVE_INFINITY; // стартовый минимум
+        boolean found = false;                 // нашли ли хоть одно значение
+        for (Box<? extends Number> box : boxes) { // перебираем коробки
+            if (!box.isEmpty()) {              // если коробка не пуста
+                double v = box.peek().doubleValue(); // читаем без обнуления
+                if (v > max) max = v;          // обновляем максимум
+                found = true;                  // значение найдено
+            }
+        }
+        if (!found) {                          // если все пусты
+            System.out.println("Все коробки пусты — максимума нет"); // сообщение
+            return Double.NaN;                 // корректный «нет значения»
+        }
+        return max;                            // возвращаем максимум
+    }
+
+    // Строковое представление
+    @Override
+    public String toString() {
+        return "MaxBoxFinder{}";               // просто имя класса
+    }
+}
+
+
+
+
+
+// 3.1 Функция: преобразование элементов списка
+public interface FunctionTask {
+
+    // Контракт преобразования T → P
+    interface Transformer<T, P> {
+        P apply(T value);                  // применить преобразование
+    }
+
+    // String → Integer: длина строки
+    class StringLength implements Transformer<String, Integer> {
+        @Override
+        public Integer apply(String value) { // принимаем строку
+            return value.length();          // возвращаем её длину
+        }
+        @Override
+        public String toString() { return "StringLength{}"; } // имя
+    }
+
+    // Integer → Integer: модуль числа
+    class AbsoluteValue implements Transformer<Integer, Integer> {
+        @Override
+        public Integer apply(Integer value) { // принимаем число
+            return Math.abs(value);         // возвращаем модуль
+        }
+        @Override
+        public String toString() { return "AbsoluteValue{}"; } // имя
+    }
+
+    // int[] → Integer: максимум массива
+    class ArrayMax implements Transformer<int[], Integer> {
+        @Override
+        public Integer apply(int[] value) { // принимаем массив
+            if (value.length == 0) return Integer.MIN_VALUE; // пустой → «дно»
+            int max = value[0];             // стартовый максимум
+            for (int v : value) if (v > max) max = v; // ищем максимум
+            return max;                     // возвращаем его
+        }
+        @Override
+        public String toString() { return "ArrayMax{}"; } // имя
+    }
+}
+
+
+
+
+
+
+// 3.2 Фильтр: фильтрация элементов списка
+public interface FilterTask {
+
+    // Контракт проверки элемента
+    interface Condition<T> {
+        boolean test(T value);             // true — оставить элемент
+    }
+
+    // Строки длиной ≥ 3
+    class LengthAtLeast3 implements Condition<String> {
+        @Override
+        public boolean test(String value) { // принимаем строку
+            return value.length() >= 3;     // проверяем длину
+        }
+        @Override
+        public String toString() { return "LengthAtLeast3{}"; } // имя
+    }
+
+    // Положительные числа
+    class IsPositive implements Condition<Integer> {
+        @Override
+        public boolean test(Integer value) { // принимаем число
+            return value > 0;               // проверяем знак
+        }
+        @Override
+        public String toString() { return "IsPositive{}"; } // имя
+    }
+
+    // Массивы без положительных элементов
+    class NoPositiveElements implements Condition<int[]> {
+        @Override
+        public boolean test(int[] value) {  // принимаем массив
+            for (int v : value) if (v > 0) return false; // нашли плюс → нет
+            return true;                    // ни одного плюса → да
+        }
+        @Override
+        public String toString() { return "NoPositiveElements{}"; } // имя
+    }
+}
+
+
+
+
+
+
+
+import java.util.List;                   // нужен List
+
+// 3.3 Сокращение: сведение списка к одному значению
+public interface ReduceTask {
+
+    // Контракт объединения двух значений
+    interface Combiner<T> {
+        T combine(T left, T right);        // как объединить left и right
+    }
+
+    // Склейка строк
+    class Concat implements Combiner<String> {
+        @Override
+        public String combine(String left, String right) { // две строки
+            return left + right;           // склеиваем
+        }
+        @Override
+        public String toString() { return "Concat{}"; } // имя
+    }
+
+    // Сумма чисел
+    class Sum implements Combiner<Integer> {
+        @Override
+        public Integer combine(Integer left, Integer right) { // два числа
+            return left + right;           // складываем
+        }
+        @Override
+        public String toString() { return "Sum{}"; } // имя
+    }
+
+    // Размер вложенного списка (для сценария 3)
+    class ListSize implements FunctionTask.Transformer<List<Integer>, Integer> {
+        @Override
+        public Integer apply(List<Integer> value) { // принимаем список
+            return value.size();           // возвращаем размер
+        }
+        @Override
+        public String toString() { return "ListSize{}"; } // имя
+    }
+}
+
+
+
+
+
+import java.util.ArrayList;              // список
+import java.util.HashMap;                // словарь
+import java.util.HashSet;                // множество
+import java.util.List;                   // интерфейс списка
+import java.util.Map;                    // интерфейс словаря
+import java.util.Set;                    // интерфейс множества
+
+// 3.4 Коллекционирование: сборка результата в произвольный контейнер
+public interface CollectTask {
+
+    // Контракт создания пустого результата
+    interface ResultFactory<R> {
+        R create();                        // создать контейнер
+    }
+
+    // Контракт добавления элемента в результат
+    interface ResultWriter<R, T> {
+        void add(R result, T value);       // положить value в result
+    }
+
+    // --- Сценарий 1: положительные / отрицательные ---
+
+    // Создаёт список из двух пустых списков
+    class SplitFactory implements ResultFactory<List<List<Integer>>> {
+        @Override
+        public List<List<Integer>> create() { // создаём результат
+            List<List<Integer>> r = new ArrayList<>(); // внешний список
+            r.add(new ArrayList<>());      // [0] — положительные
+            r.add(new ArrayList<>());      // [1] — отрицательные
+            return r;                      // возвращаем
+        }
+        @Override
+        public String toString() { return "SplitFactory{}"; } // имя
+    }
+
+    // Раскладывает число в нужный подсписок
+    class SplitWriter implements ResultWriter<List<List<Integer>>, Integer> {
+        @Override
+        public void add(List<List<Integer>> result, Integer value) { // принимаем
+            if (value >= 0) result.get(0).add(value); // ≥0 → в первый
+            else            result.get(1).add(value); // <0 → во второй
+        }
+        @Override
+        public String toString() { return "SplitWriter{}"; } // имя
+    }
+
+    // --- Сценарий 2: группировка по длине ---
+
+    // Создаёт пустой словарь
+    class GroupByLengthFactory implements ResultFactory<Map<Integer, List<String>>> {
+        @Override
+        public Map<Integer, List<String>> create() { // создаём
+            return new HashMap<>();        // пустой HashMap
+        }
+        @Override
+        public String toString() { return "GroupByLengthFactory{}"; } // имя
+    }
+
+    // Кладёт строку в группу по её длине
+    class GroupByLengthWriter implements ResultWriter<Map<Integer, List<String>>, String> {
+        @Override
+        public void add(Map<Integer, List<String>> result, String value) { // принимаем
+            int key = value.length();      // ключ — длина строки
+            if (!result.containsKey(key)) { // если группы нет
+                result.put(key, new ArrayList<>()); // создаём её
+            }
+            result.get(key).add(value);    // добавляем строку в группу
+        }
+        @Override
+        public String toString() { return "GroupByLengthWriter{}"; } // имя
+    }
+
+    // --- Сценарий 3: множество без дубликатов ---
+
+    // Создаёт пустое множество
+    class SetFactory implements ResultFactory<Set<String>> {
+        @Override
+        public Set<String> create() {      // создаём
+            return new HashSet<>();        // пустой HashSet
+        }
+        @Override
+        public String toString() { return "SetFactory{}"; } // имя
+    }
+
+    // Добавляет строку в множество (дубликаты игнорируются)
+    class SetWriter implements ResultWriter<Set<String>, String> {
+        @Override
+        public void add(Set<String> result, String value) { // принимаем
+            result.add(value);             // Set сам отбросит дубликат
+        }
+        @Override
+        public String toString() { return "SetWriter{}"; } // имя
+    }
+}
+
+
+
+
+
+
+
+import java.util.ArrayList;              // список
+import java.util.Arrays;                 // Arrays.toString
+import java.util.List;                   // интерфейс списка
+import java.util.Map;                    // интерфейс словаря
+import java.util.Set;                    // интерфейс множества
+
+// Точка входа: запускает все задания
+public class Main {
+
+    // Запуск всех заданий по порядку
+    public static void main(String[] args) {
+        task11();                          // 1.1
+        task12();                          // 1.2
+        task22();                          // 2.2
+        task31();                          // 3.1
+        task32();                          // 3.2
+        task33();                          // 3.3
+        task34();                          // 3.4
+    }
+
+    // ---------- 1.1 ----------
+    // Демонстрация коробки
+    static void task11() {
+        System.out.println("\n=== 1.1 Коробка ==="); // заголовок
+        Box<Integer> box = new Box<>();    // коробка для Integer
+        box.put(3);                        // кладём 3
+        System.out.println("До извлечения: " + box); // печатаем
+
+        printFromBox(box);                 // извлекаем внутри метода
+        System.out.println("После извлечения: " + box); // печатаем
+
+        box.put(10);                       // снова кладём 10
+        try {
+            box.put(20);                   // пытаемся положить в занятую
+        } catch (IllegalStateException e) { // ловим исключение
+            System.out.println("Ожидаемое исключение: " + e.getMessage()); // печатаем
+        }
+    }
+
+    // Извлекает значение из коробки и печатает
+    static void printFromBox(Box<Integer> box) {
+        Integer value = box.get();         // извлекаем (обнуляется)
+        System.out.println("Извлечено: " + value); // печатаем
+    }
+
+    // ---------- 1.2 ----------
+    // Демонстрация хранилища
+    static void task12() {
+        System.out.println("\n=== 1.2 Без null ==="); // заголовок
+        printStorage(new NoNullStorage<>(null, 0));            // null → 0
+        printStorage(new NoNullStorage<>(99, -1));             // 99 → 99
+        printStorage(new NoNullStorage<>(null, "default"));    // null → "default"
+        printStorage(new NoNullStorage<>("hello", "hello world")); // hello → hello
+    }
+
+    // Печатает хранилище и его get()
+    static <T> void printStorage(NoNullStorage<T> storage) {
+        System.out.println(storage + " -> get() = " + storage.get()); // печать
+    }
+
+    // ---------- 2.2 ----------
+    // Демонстрация поиска максимума
+    static void task22() {
+        System.out.println("\n=== 2.2 Поиск максимума ==="); // заголовок
+
+        Box<Integer> b1 = new Box<>(); b1.put(42);  // коробка с 42
+        Box<Double>  b2 = new Box<>(); b2.put(17.5); // коробка с 17.5
+        Box<Long>    b3 = new Box<>(); b3.put(900L); // коробка с 900
+        Box<Integer> b4 = new Box<>();              // пустая коробка
+
+        List<Box<? extends Number>> boxes = new ArrayList<>(); // список коробок
+        boxes.add(b1);                     // добавляем первую
+        boxes.add(b2);                     // вторую
+        boxes.add(b3);                     // третью
+        boxes.add(b4);                     // пустую
+
+        System.out.println("Коробки: " + boxes); // печатаем коробки
+        System.out.println("Максимум: " + MaxBoxFinder.findMax(boxes)); // и максимум
+    }
+
+    // ---------- 3.1 ----------
+    // Демонстрация преобразования
+    static void task31() {
+        System.out.println("\n=== 3.1 Функция ==="); // заголовок
+
+        List<String> strings = List.of("qwerty", "asdfg", "zx"); // строки
+        System.out.println(transform(strings, new FunctionTask.StringLength())); // длины
+
+        List<Integer> numbers = List.of(1, -3, 7); // числа
+        System.out.println(transform(numbers, new FunctionTask.AbsoluteValue())); // модули
+
+        List<int[]> arrays = List.of(              // массивы
+                new int[]{1, 5, 3},                // первый
+                new int[]{-2, -8},                 // второй
+                new int[]{}                        // пустой
+        );
+        System.out.println(transform(arrays, new FunctionTask.ArrayMax())); // максимумы
+    }
+
+    // Универсальное преобразование списка
+    static <T, P> List<P> transform(List<T> source, FunctionTask.Transformer<T, P> t) {
+        List<P> result = new ArrayList<>();    // новый список
+        for (T item : source) {                // перебираем исходные
+            result.add(t.apply(item));         // применяем и добавляем
+        }
+        return result;                         // возвращаем
+    }
+
+    // ---------- 3.2 ----------
+    // Демонстрация фильтрации
+    static void task32() {
+        System.out.println("\n=== 3.2 Фильтр ==="); // заголовок
+
+        List<String> strings = List.of("qwerty", "asdfg", "zx"); // строки
+        System.out.println(filter(strings, new FilterTask.LengthAtLeast3())); // ≥3
+
+        List<Integer> numbers = List.of(1, -3, 7); // числа
+        System.out.println(filter(numbers, new FilterTask.IsPositive())); // >0
+
+        List<int[]> arrays = List.of(              // массивы
+                new int[]{1, 5},                   // с плюсами
+                new int[]{-2, -8},                 // без плюсов
+                new int[]{0, -1}                   // без плюсов
+        );
+        List<int[]> filtered = filter(arrays, new FilterTask.NoPositiveElements()); // фильтр
+        for (int[] a : filtered) {             // печатаем результат
+            System.out.println(Arrays.toString(a)); // каждый массив
+        }
+    }
+
+    // Универсальная фильтрация списка
+    static <T> List<T> filter(List<T> source, FilterTask.Condition<T> c) {
+        List<T> result = new ArrayList<>();    // новый список
+        for (T item : source) {                // перебираем исходные
+            if (c.test(item)) result.add(item); // прошёл — добавляем
+        }
+        return result;                         // возвращаем
+    }
+
+    // ---------- 3.3 ----------
+    // Демонстрация сокращения
+    static void task33() {
+        System.out.println("\n=== 3.3 Сокращение ==="); // заголовок
+
+        List<String> strings = List.of("qwerty", "asdfg", "zx"); // строки
+        System.out.println(reduce(strings, "", new ReduceTask.Concat())); // склейка
+
+        List<Integer> numbers = List.of(1, -3, 7); // числа
+        System.out.println(reduce(numbers, 0, new ReduceTask.Sum())); // сумма
+
+        List<List<Integer>> groups = List.of(      // список списков
+                List.of(1, 2, 3),                  // первый
+                List.of(4, 5),                     // второй
+                List.of(6)                         // третий
+        );
+        List<Integer> sizes = transform(groups, new ReduceTask.ListSize()); // размеры
+        System.out.println("Размеры: " + sizes);   // печатаем размеры
+        System.out.println("Всего элементов: " + reduce(sizes, 0, new ReduceTask.Sum())); // сумма
+
+        List<Integer> empty = List.of();           // пустой список
+        System.out.println("Пустой список: " + reduce(empty, 0, new ReduceTask.Sum())); // 0
+    }
+
+    // Универсальное сокращение списка
+    static <T> T reduce(List<T> source, T identity, ReduceTask.Combiner<T> c) {
+        T acc = identity;                      // стартовое значение
+        for (T item : source) {                // перебираем
+            acc = c.combine(acc, item);        // объединяем
+        }
+        return acc;                            // возвращаем
+    }
+
+    // ---------- 3.4 ----------
+    // Демонстрация коллекционирования
+    static void task34() {
+        System.out.println("\n=== 3.4 Коллекционирование ==="); // заголовок
+
+        List<Integer> numbers = List.of(1, -3, 7); // числа
+        List<List<Integer>> split = collect(       // разбиение
+                numbers,                           // исходные
+                new CollectTask.SplitFactory(),    // как создать
+                new CollectTask.SplitWriter());    // как добавлять
+        System.out.println("Разбиение: " + split); // печатаем
+
+        List<String> words = List.of("qwerty", "asdfg", "zx", "qw"); // слова
+        Map<Integer, List<String>> grouped = collect( // группировка
+                words,                             // исходные
+                new CollectTask.GroupByLengthFactory(),// как создать
+                new CollectTask.GroupByLengthWriter());// как добавлять
+        System.out.println("Группы по длине: " + grouped); // печатаем
+
+        List<String> withDupes = List.of("qwerty", "asdfg", "qwerty", "qw"); // с дублями
+        Set<String> unique = collect(              // множество
+                withDupes,                         // исходные
+                new CollectTask.SetFactory(),      // как создать
+                new CollectTask.SetWriter());      // как добавлять
+        System.out.println("Без дубликатов: " + unique); // печатаем
+    }
+
+    // Универсальный сбор в контейнер
+    static <T, R> R collect(List<T> source,
+                            CollectTask.ResultFactory<R> factory,
+                            CollectTask.ResultWriter<R, T> writer) {
+        R result = factory.create();           // создаём контейнер
+        for (T item : source) {                // перебираем
+            writer.add(result, item);          // добавляем
+        }
+        return result;                         // возвращаем
+    }
+}
